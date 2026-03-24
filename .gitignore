@@ -1,0 +1,7 @@
+netlist
+__pycache__
+*.log
+.vscode
+tests
+venv
+*.pyc
