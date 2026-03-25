@@ -9,30 +9,25 @@ from netlist_analyzer.gui import launch_gui
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Analyze hierarchical SPICE/auCdl netlists.")
-    parser.add_argument("--file", dest="file_path", default=_default_netlist_path(), help="Netlist file path")
+    parser.add_argument("--file", dest="file_path", help="Netlist file path")
     parser.add_argument("--top", dest="top_name", help="Override top subckt name")
     parser.add_argument("--export", dest="export_dir", help="Export JSON/CSV to this directory and exit")
     parser.add_argument("--no-gui", action="store_true", help="Run analysis in batch mode without opening the GUI")
     return parser
 
 
-def _default_netlist_path() -> str:
-    default = Path.cwd() / "netlist"
-    return str(default) if default.exists() else ""
-
-
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
 
-    if not args.file_path:
-        parser.error("Provide --file or place a 'netlist' file in the current directory.")
+    file_path = Path(args.file_path).expanduser() if args.file_path else None
 
-    file_path = Path(args.file_path)
-    if not file_path.exists():
+    if file_path and not file_path.exists():
         parser.error(f"Netlist file not found: {file_path}")
 
     if args.export_dir or args.no_gui:
+        if not file_path:
+            parser.error("--file is required when using --export or --no-gui.")
         result = analyze_netlist(file_path, top_name=args.top_name)
         print_terminal_summary(result)
         if args.export_dir:
